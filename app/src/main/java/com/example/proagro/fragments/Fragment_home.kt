@@ -1,24 +1,34 @@
 package com.example.proagro.fragments
 
+
+import android.content.Intent
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.denzcoskun.imageslider.ImageSlider
-import com.denzcoskun.imageslider.constants.ScaleTypes
-import com.denzcoskun.imageslider.interfaces.ItemClickListener
-import com.denzcoskun.imageslider.models.SlideModel
-import com.example.proagro.R
-import com.example.proagro.adapters.PopularAdapter
+import com.example.proagro.activities.LoginActivity
+import com.example.proagro.adapters.BtmShtProductAdapter
 import com.example.proagro.databinding.FragmentHomeBinding
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.example.proagro.model.ProductItem
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
+import org.imaginativeworld.whynotimagecarousel.model.CarouselItem
 
 class Fragment_home : Fragment() {
 
     private lateinit var binding: FragmentHomeBinding
+
+    private lateinit var database : FirebaseDatabase
+    private lateinit var productItems : MutableList<ProductItem>
+
+    val auth= FirebaseAuth.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,49 +42,112 @@ class Fragment_home : Fragment() {
         // Inflate the layout for this fragment
         binding = FragmentHomeBinding.inflate(inflater, container, false)
 
-//        binding.viewProductBtn.setOnClickListener{
-//            val bottomSheetDialog = BottomSheetFragment()
-//            bottomSheetDialog.show(parentFragmentManager,"Test")
-//        }
+
+        binding.logOut.setOnClickListener(){
+            auth.signOut()
+            startActivity(Intent(requireContext(), LoginActivity::class.java))
+            requireActivity().finish()
+        }
+
+// Open Bottom Sheet for Notification
+        binding.notificationBtn.setOnClickListener {
+            val bottomSheetDialog = NotificationBottomSheet()
+            bottomSheetDialog.show(parentFragmentManager, "Test")
+        }
+
+
         binding.viewProductBtn.setOnClickListener {
             val bottomSheetDialog =BottomSheetFragment()
             bottomSheetDialog.show(parentFragmentManager,"Test")
         }
 
 
-        val imageList = ArrayList<SlideModel>() // Create image list
-        imageList.add(SlideModel(R.drawable.sliderimage1,ScaleTypes.FIT))
-        imageList.add(SlideModel(R.drawable.sliderimage2,ScaleTypes.FIT))
-        imageList.add(SlideModel(R.drawable.sliderimage3,ScaleTypes.FIT))
 
-        var imageSlider=binding.imageSlider
-        imageSlider.setImageList(imageList)
+       // set data into slider
+        SliderImage()
 
-        imageSlider.setItemClickListener(object : ItemClickListener{
-            override fun doubleClick(position: Int) {
-                TODO("Not yet implemented")
-            }
 
-            override fun onItemSelected(position: Int) {
-                val itemPosition=imageList[position]
-                val itemMessage="Selected item $position"
-                Toast.makeText(requireContext(),itemMessage,Toast.LENGTH_SHORT).show()
-            }
-        })
+        //retrieve data
+        retrieveProductItem()
 
-        val productName= listOf("Vertako","Glapho","Cartep","Lemda","Vertako","Glapho","Cartep","Lemda","Vertako","Glapho","Cartep","Lemda","Vertako","Glapho","Cartep","Lemda")
-        val productPrice= listOf("$15","$7","$10","$20","$15","$7","$10","$20","$15","$7","$10","$20","$15","$7","$10","$20")
-        val productImage= listOf(R.drawable.spray1,R.drawable.spary2,R.drawable.sprey3,R.drawable.spray4,R.drawable.spray1,R.drawable.spary2,R.drawable.sprey3,R.drawable.spray4,R.drawable.spray1,R.drawable.spary2,R.drawable.sprey3,R.drawable.spray4,R.drawable.spray1,R.drawable.spary2,R.drawable.sprey3,R.drawable.spray4)
 
-        val adapter=PopularAdapter(productName,productPrice,productImage,requireContext())
-        binding.popularRecyclerView.layoutManager=LinearLayoutManager(requireContext())
-         binding.popularRecyclerView.adapter=adapter
 
 
             return binding.root
 
+    }
 
-
+    private fun SliderImage() {
+        binding.carouselImageSlider.addData(
+            CarouselItem(
+                "https://imgscf.slidemembers.com/docs/1/1/878/smart_farming_guide_company_profile_template_design_877744.jpg",
+                "Solution for everything"
+            )
+        )
+        binding.carouselImageSlider.addData(
+            CarouselItem(
+                "https://agricos.net/wp-content/uploads/2015/03/3.jpg",
+                "Smart Farmers"
+            )
+        )
+        binding.carouselImageSlider.addData(
+            CarouselItem(
+                "https://imgscf.slidemembers.com/docs/1/1/683/agriculture_google_slides_to_powerpoint_682961.jpg",
+                "Agriculture Company"
+            )
+        )
 
     }
+
+    private fun retrieveProductItem() {
+        database= FirebaseDatabase.getInstance()
+        val productRef: DatabaseReference = database.reference.child("product")
+        productItems= mutableListOf()
+
+        // fetch data from RealTime database
+        productRef.addListenerForSingleValueEvent(object : ValueEventListener
+        {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                //Clear existing data before show
+               // productItem.clear()
+
+                // loop for through each item
+                for (productSnapshot in snapshot.children){
+                    val menuItem : ProductItem? =productSnapshot.getValue(ProductItem::class.java)
+                    menuItem?.let {
+                        productItems.add(it)
+                    }
+                }
+                randomPopularItems()
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                TODO("Not yet implemented")
+            }
+
+        })
+    }
+    private fun randomPopularItems(){
+
+        try {
+
+        // create shuffled list of products
+        val index: List<Int> = productItems.indices.toList().shuffled()
+        val numItemToShow=6
+        val subsetproductItems= index.take(numItemToShow).map { productItems[it] }
+        setAdapter(subsetproductItems)
+    }catch (e : Exception){
+            Toast.makeText(requireContext(),"Internet problem !! ${e.message}",Toast.LENGTH_LONG).show()
+    }
+    }
+
+    private fun setAdapter(subsetproductItems: List<ProductItem>) {
+
+        val adapter=BtmShtProductAdapter(requireContext(),subsetproductItems)
+        binding.popularRecyclerView.layoutManager=LinearLayoutManager(requireContext())
+        binding.popularRecyclerView.adapter=adapter
+    }
+
 }
+
+

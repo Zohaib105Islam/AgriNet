@@ -6,6 +6,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:title="Home"
+        android:iconTint="@color/white"
         android:icon="@drawable/home"/>
     <item
         android:id="@+id/fragment_cart"
@@ -30,5 +31,5 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:title="Profile"
-        android:icon="@drawable/profile"/>
+        android:icon="@drawable/profile_icon"/>
 </menu>
