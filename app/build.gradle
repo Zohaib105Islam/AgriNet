@@ -25,7 +25,7 @@ android {
         }
     }
 
-    buildFeatures{
+    buildFeatures {
         viewBinding true
     }
 
@@ -48,8 +48,6 @@ dependencies {
     // for bottom nav graph
     implementation 'androidx.navigation:navigation-fragment-ktx:2.7.4'
     implementation 'androidx.navigation:navigation-ui-ktx:2.7.4'
-    //Realtime Database
-    implementation 'com.google.firebase:firebase-database:20.3.0'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
@@ -58,20 +56,26 @@ dependencies {
 // Image slider
     //For Slider
     // Material Components for Android. Replace the version with the latest version of Material Components library.
-    implementation 'com.google.android.material:material:1.5.0'// Circle Indicator (To fix the xml preview "Missing classes" error)
+    implementation 'com.google.android.material:material:1.5.0'
+// Circle Indicator (To fix the xml preview "Missing classes" error)
     implementation 'me.relex:circleindicator:2.1.6'
     implementation 'org.imaginativeworld.whynotimagecarousel:whynotimagecarousel:2.1.0'
-    
 
-    // Firebase Authentication
-    implementation 'com.google.firebase:firebase-auth:22.3.0'
 
     //Glide
-    implementation ("com.github.bumptech.glide:glide:4.16.0")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
 
     //For Search Bar
     implementation 'com.github.mancj:MaterialSearchBar:0.8.5'
 
-
+    //Firebase dependencies=================
+    implementation(platform("com.google.firebase:firebase-bom:32.7.1"))
+//Realtime Database
+    implementation 'com.google.firebase:firebase-database:20.3.0'
+    // Firebase Authentication
+    implementation 'com.google.firebase:firebase-auth:22.3.0'
+    // Storage
+    //implementation ("com.google.firebase:firebase-storage:24.0.0")
+    implementation("com.google.firebase:firebase-storage")
 
 }
